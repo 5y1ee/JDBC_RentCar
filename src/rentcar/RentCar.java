@@ -8,15 +8,8 @@ public class RentCar {
 	public static void main(String[] args) {
 		
 		// DB 연결
-		DBManager db = DBManager.getInstance();
-		db.connectDB();
-		
-		// 데이터 저장
-		/*
-		 * INSERT INFO users (userid, username, userpassword, userage, useremail)
-		 * VALUES ('winter', 한겨울', ...)
-		 * VALUES (?,?,?,?,?)
-		 */
+//		var conn = DBManager.getConnection();
+//		DBManager.connectDB(conn);
 		
 		// 매개변수 insert문
 		String insertSQL = new StringBuilder()
@@ -28,14 +21,14 @@ public class RentCar {
 		
 		// PreparedStatement 얻기 및 값 지정
 		try {
-			PreparedStatement insert_pstmt = db.prepareStatement(insertSQL);
+			PreparedStatement insert_pstmt = conn.prepareStatement(insertSQL);
 			insert_pstmt.setInt(1, 3);
 			insert_pstmt.setString(2, "asdf@google.com");
 			insert_pstmt.setString(3, "qwer1234");
 			insert_pstmt.setInt(4, 25);
 			insert_pstmt.setInt(5, 36);
 			
-			PreparedStatement insert_pstmt2 = db.prepareStatement(insertSQL2);
+			PreparedStatement insert_pstmt2 = conn.prepareStatement(insertSQL2);
 			
 			int rows = insert_pstmt2.executeUpdate();
 			
@@ -50,7 +43,7 @@ public class RentCar {
 		} finally {
 			try {
 				// 연결 끊기
-				db.close();
+				conn.close();
 			} catch (SQLException e) {}
 			
 		}

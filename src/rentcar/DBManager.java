@@ -1,74 +1,86 @@
 package rentcar;
 
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 public class DBManager {
 	
-	private static DBManager dbManager = new DBManager();
-	private static Connection conn = null;
+	// Const
+	private static final String ORACLE_DRIVER = "oracle.jdbc.OracleDriver";
+	private static final String ORACLE_ADDRESS = "jdbc:oracle:thin:@localhost:1521/xe";
+	private static final String ORACLE_USER = "testuser";
+	private static final String ORACLE_PASSWORD = "test1234";
+
+	// Field
+//	protected Connection conn = null;
+	protected static DBManager instance = new DBManager();
 	
-	private DBManager() {
-		
-	}
-	
-	public static DBManager getInstance() {
-		return dbManager;
-	}
-	
-	public static void connectDB() {
-		if (conn != null) {
-			System.out.println("Already Connected.");
-			return;
-		}
-		
+	// Constructor
+	protected DBManager() {
 		try {
-			// JDBC Driver 등록
-			Class.forName("oracle.jdbc.OracleDriver");
-			
-			// 연결하기
-			conn = DriverManager.getConnection(
-					"jdbc:oracle:thin:@localhost:1521/xe",
-					"testuser",
-					"test1234"
-					);
-			
-			System.out.println("Connection Success.");
-			
-		} catch (Exception e) {
-			System.out.println("Connection Fail.");
+			Class.forName(ORACLE_DRIVER);
+		} catch (ClassNotFoundException e) {
+			throw new RuntimeException("Driver load failed", e);
+		}
+	}
+	
+	// Method
+	public static DBManager getInstance() {
+		return instance;
+	}
+	
+	public Connection getConnection() {
+		try {
+			return DriverManager.getConnection(ORACLE_ADDRESS, ORACLE_USER, ORACLE_PASSWORD);
+		} catch (SQLException e) {
+			throw new RuntimeException("Connection failed", e);
+		}
+	}
+	
+	public void returnConnection(Connection conn) {
+		try {
+			if (conn != null && !conn.isClosed())
+				conn.close();
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-//		finally {
-//			if (conn != null) {
-//				try {
-//					// 연결 끊기
-//					conn.close();
-//					System.out.println("End Connection.");
-//				} catch (SQLException e) {}
-//			}
+	}
+	
+	
+//	public Connection getConnection() {
+//		connectDB();
+//		return conn;
+//	}
+	
+//	protected void connectDB() {
+//		if (conn != null) {
+//			System.out.println("Already Connected.");
+//			return;
 //		}
-		
-	}
+//		
+//		try {
+//			// JDBC Driver 등록
+//			Class.forName(ORACLE_DRIVER);
+//			
+//			// 연결하기
+//			conn = connect();
+//			
+//			System.out.println("Connection Success.");
+//			
+//		} catch (Exception e) {
+//			System.out.println("Connection Fail.");
+//			e.printStackTrace();
+//		}
+//		
+//	}
 	
-	public static PreparedStatement prepareStatement(String sql) throws SQLException {
-		if (conn == null) connectDB();
-		System.out.println(conn);
-		return conn.prepareStatement(sql);
-	}
-	
-	public static void close() throws SQLException {
-		if (conn == null) connectDB();
-		conn.close();
-	}
-	
-	public static DatabaseMetaData getMetaData() throws SQLException {
-		if (conn == null) connectDB();
-		return conn.getMetaData();
-	}
-	
+//	protected Connection connect() throws SQLException {
+//		return DriverManager.getConnection(
+//				ORACLE_ADDRESS,
+//				ORACLE_USER,
+//				ORACLE_PASSWORD
+//				);
+//	}
 	
 }
