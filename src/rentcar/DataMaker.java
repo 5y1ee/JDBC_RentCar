@@ -132,25 +132,60 @@ package rentcar;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.sql.*;
-import java.util.*;
+import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.function.Supplier;
 
 public class DataMaker {
 
     private static final Random rand = new Random();
+    private static final int dVal = 20;
 
     // 캐시된 ID 리스트들
     private static List<Integer> cachedUserIds = new ArrayList<>();
     private static List<Integer> cachedPaymentIds = new ArrayList<>();
     private static List<Integer> cachedBranchIds = new ArrayList<>();
     private static List<Integer> cachedCarIds = new ArrayList<>();
+    
+    // Supplier interface
+    private static final Map<String, Supplier<Object>> valueGenerator = Map.ofEntries(
+    	    Map.entry("users.email", () -> makeEmail()),
+    	    Map.entry("users.password", () -> List.of("M", "F").get(rand.nextInt(2))),
+    	    Map.entry("users.age", () -> dVal + rand.nextInt(dVal*3)),
+    	    Map.entry("users.score", () -> dVal + rand.nextInt(-1*dVal,dVal)),
+
+    	    Map.entry("payments.name", () -> List.of("Y", "N").get(rand.nextInt(2)))
+    	    // 대충 뒤에 알아서 추가
+    	);
+    
+    private static final String makeEmail() {
+    	String chars = "abcdefghijklmnopqrstuvwxyz";
+        int len = 5 + rand.nextInt(6); // 5~10글자
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < len; i++) {
+            sb.append(chars.charAt(rand.nextInt(chars.length())));
+        }
+
+        List<String> domains = List.of("@gmail.com", "@naver.com", "@kakao.com", "@daum.net");
+        String domain = domains.get(rand.nextInt(domains.size()));
+
+        return sb.toString() + domain;
+    }
+    
+    
 
     public static void main(String[] args) {
         insertDummyData("Users", 10);
         insertDummyData("Payments", 10);
-        insertDummyData("Branches", 5);
-        insertDummyData("Cars", 15);
-        insertDummyData("UsersCars", 20);
+//        insertDummyData("Branches", 5);
+//        insertDummyData("Cars", 15);
+//        insertDummyData("UsersCars", 20);
     }
 
     public static void insertDummyData(String tableName, int count) {
@@ -205,7 +240,7 @@ public class DataMaker {
     }
 
     private static Object generateDummyValue(String typeName, String columnName, String tableName) throws Exception {
-    	System.out.println("columnName : " + columnName + ", tableName : " + tableName);
+//    	System.out.println("columnName : " + columnName + ", tableName : " + tableName);
         switch (columnName.toLowerCase()) {
             case "userid":
             	if ("users".equals(tableName.toLowerCase())) break;
@@ -219,6 +254,12 @@ public class DataMaker {
             case "carid":
             	if ("cars".equals(tableName.toLowerCase())) break;
                 return getRandomIdFrom("Cars", "carId", cachedCarIds);
+        }
+        
+        String key = tableName.toLowerCase() + "." + columnName.toLowerCase();
+        System.out.println(key);
+        if (valueGenerator.containsKey(key)) {
+        	return valueGenerator.get(key).get();
         }
     	
         switch (typeName.toUpperCase()) {

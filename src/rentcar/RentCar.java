@@ -11,6 +11,8 @@ public class RentCar {
 //		var conn = DBManager.getConnection();
 //		DBManager.connectDB(conn);
 		
+		var conn = DBManager.getInstance().getConnection();
+		
 		// 매개변수 insert문
 		String insertSQL = new StringBuilder()
 				.append("INSERT INTO Users (userId, email, password, age, temp) ")
